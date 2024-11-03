@@ -1,0 +1,5 @@
+[SofarInverter]
+inverter_ip=192.168.XX.XX
+inverter_port=8899
+inverter_sn=27XXXXXXXX
+verbose=0
