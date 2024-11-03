@@ -107,6 +107,8 @@ Battery Settings:
 ### JSON Output
 
 ```
+$ ./sofar-monitor.py --format=json
+
 {
     {
   "timestamp": "2024-11-03T02:41:31.635598",
@@ -260,22 +262,62 @@ Battery Settings:
 ### Prometheus Output
 
 ```
-inverter_status_decimal 0
-inverter_generation_time_minutes 0
-inverter_fault_count 0
-inverter_pv_voltage{pv="pv1"} 5.6
-inverter_pv_current{pv="pv1"} 0
-inverter_pv_power{pv="pv1"} 0
-inverter_pv_voltage{pv="pv2"} 13.0
-inverter_pv_current{pv="pv2"} 0
-inverter_pv_power{pv="pv2"} 0
-inverter_grid_frequency 50.0
-inverter_grid_voltage{phase="phase_r"} 240.2
-inverter_grid_voltage{phase="phase_s"} 234.7
-inverter_grid_voltage{phase="phase_t"} 234.4
-inverter_offgrid_frequency 50.0
-...
-...
+$ ./sofar-monitor.py --format=prometheus
+
+sofar{stats="state"} 2
+sofar{stats="generation_time"} 202
+sofar{stats="temp",sensor="ambient"} 36.0
+sofar{stats="temp",sensor="module"} 31.0
+sofar{stats="temp",sensor="heatsink"} 26.0
+sofar{stats="fault_count"} 0
+sofar{ac="frequency"} 49.99
+sofar{ac="voltage",phase="A"} 232.6
+sofar{ac="generated_power",phase="A"} 100.0
+sofar{ac="grid_power",phase="A"} 1480.0
+sofar{ac="voltage",phase="B"} 228.4
+sofar{ac="generated_power",phase="B"} 180.0
+sofar{ac="grid_power",phase="B"} 1480.0
+sofar{ac="voltage",phase="C"} 225.0
+sofar{ac="generated_power",phase="C"} 930.0
+sofar{ac="grid_power",phase="C"} 1490.0
+sofar{ac="total_grid_power"} 4450.0
+sofar{ac="total_generated_power"} 1220.0
+sofar{dc="pv_voltage",string="mppt1"} 796.1
+sofar{dc="pv_current",string="mppt1"} 0.73
+sofar{dc="pv_power",string="mppt1"} 580.0
+sofar{dc="pv_voltage",string="mppt2"} 814.1
+sofar{dc="pv_current",string="mppt2"} 0.91
+sofar{dc="pv_power",string="mppt2"} 740.0
+sofar{batt="voltage",battery_num="1"} 0.0
+sofar{batt="out_current",battery_num="1"} 0.0
+sofar{batt="out_power",battery_num="1"} 0
+sofar{batt="batt_temp",battery_num="1"} 0
+sofar{batt="batt_soc",battery_num="1"} 0
+sofar{batt="health",battery_num="1"} 0
+sofar{batt="cycles",battery_num="1"} 0
+sofar{batt="voltage",battery_num="2"} 0.0
+sofar{batt="out_current",battery_num="2"} 0.0
+sofar{batt="out_power",battery_num="2"} 0
+sofar{batt="batt_temp",battery_num="2"} 0
+sofar{batt="batt_soc",battery_num="2"} 0
+sofar{batt="health",battery_num="2"} 0
+sofar{batt="cycles",battery_num="2"} 0
+sofar{energy="total_from_pv"} 87.0
+sofar{energy="total_from_grid"} 152.3
+sofar{energy="total_to_load"} 234.2
+sofar{energy="total_to_grid"} 2.2
+sofar{energy="total_battery_charge"} 0.0
+sofar{energy="total_battery_discharge"} 0.0
+sofar{energy="daily_from_pv"} 3.2
+sofar{energy="daily_from_grid"} 24.66
+sofar{energy="daily_to_load"} 27.58
+sofar{energy="daily_to_grid"} 0.0
+sofar{energy="daily_battery_charge"} 0.0
+sofar{energy="daily_battery_discharge"} 0.0
+sofar{ac="total_load_power"} 5670
+sofar{ac="load_power",phase="A"} 1580
+sofar{ac="load_power",phase="B"} 1660
+sofar{ac="load_power",phase="C"} 2420
 ```
 
 ## Requirements

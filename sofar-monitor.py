@@ -531,13 +531,6 @@ def format_prometheus(data, inverter_name="inverter"):
     """Format data as Prometheus metrics following consistent labeling convention."""
     metrics = []
 
-    # General stats
-    state_mapping = {
-        1: "StandBy",
-        2: "Normal",
-        9: "Unknown"
-    }
-
     metrics.append(f'{inverter_name}{{stats="state"}} {data["status"]["state_decimal"]}')
     metrics.append(f'{inverter_name}{{stats="generation_time"}} {data["status"].get("generation_time_minutes", 0)}')
 
@@ -594,19 +587,6 @@ def format_prometheus(data, inverter_name="inverter"):
         # PV power (* 1000 for watts)
         pv_power = (pv_data["power"] or 0) * 1000
         metrics.append(f'{inverter_name}{{dc="pv_power",string="{mppt}"}} {pv_power}')
-
-#    # Battery metrics - using first battery if multiple exist
-#    bat_data = data['batteries'].get('battery_1', {})
-#    if bat_data:
-#        metrics.append(f'{inverter_name}{{batt="voltage",batt_num="battery_1"}} {bat_data.get("voltage", 0)}')
-#        metrics.append(f'{inverter_name}{{batt="out_current",batt_num="battery_1"}} {bat_data.get("current", 0)}')
-#        # Battery power (* 1000 for watts)
-#        bat_power = bat_data.get("power", 0) * 1000
-#        metrics.append(f'{inverter_name}{{batt="out_power",batt_num="battery_1"}} {bat_power}')
-#        metrics.append(f'{inverter_name}{{batt="batt_temp",batt_num="battery_1"}} {bat_data.get("temperature", 0)}')
-#        metrics.append(f'{inverter_name}{{batt="batt_soc",batt_num="battery_1"}} {bat_data.get("soc", 0)}')
-#        metrics.append(f'{inverter_name}{{batt="health",batt_num="battery_1"}} {bat_data.get("soh", 0)}')
-#        metrics.append(f'{inverter_name}{{batt="cycles",batt_num="battery_1"}} {bat_data.get("cycles", 0)}')
 
     # Battery metrics - handle both batteries
     for bat_num in range(1, 3):

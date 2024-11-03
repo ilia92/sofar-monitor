@@ -4,7 +4,7 @@ This guide will help you set up your Sofar Solar exporter to run as a systemd se
 
 ## Prerequisites
 
-    ```
+    ```bash
     pip3 install flask gunicorn
     ```
 
