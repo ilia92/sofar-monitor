@@ -170,7 +170,97 @@ def interpret_fault_codes(values):
             4096: "ID29 Leakage current consistency error",
             8192: "ID30 Grid voltage consistency error",
             16384: "ID31 DCI consistency error",
-        }
+        },
+        '0x0407': {
+            0: "No error",
+            1: "ID32 Over temperature fault",
+            2: "ID33 Fan failure",
+            4: "ID34 Communication error with modules",
+            8: "ID35 EEPROM read/write error",
+            16: "ID36 DSP error",
+            32: "ID37 Flash memory error",
+            64: "ID38 RTC failure",
+            128: "ID39 Calibration parameter error",
+            256: "ID40 Initialization failure",
+            512: "ID41 Internal fault",
+        },
+        '0x0408': {
+            0: "No error",
+            1: "ID42 Overload fault",
+            2: "ID43 Short circuit protection",
+            4: "ID44 Voltage harmonics fault",
+            8: "ID45 Grid impedance too high",
+            16: "ID46 Current imbalance fault",
+            32: "ID47 DC bus overvoltage",
+            64: "ID48 DC bus undervoltage",
+            128: "ID49 Phase loss protection",
+            256: "ID50 Phase sequence error",
+        },
+        '0x0409': {
+            0: "No error",
+            1: "ID51 Grid phase current unbalance fault",
+            2: "ID52 DC link voltage fault",
+            4: "ID53 AC overcurrent fault",
+            8: "ID54 Power module fault",
+            16: "ID55 Internal communication fault",
+            32: "ID56 Protection circuit fault",
+            64: "ID57 DC input voltage fault",
+            128: "ID58 PV overvoltage fault",
+        },
+        '0x0410': {
+            0: "No error",
+            1: "ID59 Ground fault detection error",
+            2: "ID60 Insulation resistance fault",
+            4: "ID61 PV input overcurrent",
+            8: "ID62 Inverter startup failure",
+            16: "ID63 Active anti-islanding protection fault",
+            32: "ID64 Reactive power control fault",
+        },
+        '0x0411': {
+            0: "No error",
+            1: "ID65 System self-test fault",
+            2: "ID66 Power factor fault",
+            4: "ID67 Inverter hardware error",
+            8: "ID68 Battery communication fault",
+            16: "ID69 Battery overcharge protection",
+            32: "ID70 Battery undervoltage protection",
+        },
+        '0x0412': {
+            0: "No error",
+            1: "ID71 Grid synchronization timeout",
+            2: "ID72 AC output fault",
+            4: "ID73 Battery overcurrent protection",
+            8: "ID74 Battery temperature fault",
+            16: "ID75 Power module overtemperature",
+        },
+        '0x0413': {
+            0: "No error",
+            1: "ID76 Cooling system fault",
+            2: "ID77 DC bus fault",
+            4: "ID78 Grid phase voltage imbalance",
+            8: "ID79 Battery charge/discharge fault",
+            16: "ID80 PV input configuration error",
+        },
+        '0x0414': {
+            0: "No error",
+            1: "ID81 Output overvoltage",
+            2: "ID82 Output undervoltage",
+            4: "ID83 Frequency deviation fault",
+            8: "ID84 Overload timeout fault",
+        },
+        '0x0415': {
+            0: "No error",
+            1: "ID85 Communication mismatch",
+            2: "ID86 Isolation resistance low",
+            4: "ID87 Hardware incompatibility fault",
+            8: "ID88 Voltage sag detection error",
+        },
+        '0x0416': {
+            0: "No error",
+            1: "ID89 Overfrequency transient fault",
+            2: "ID90 Undervoltage transient fault",
+            4: "ID91 Voltage rise timeout fault",
+        },
     }
     
     for reg, fault_map in fault_definitions.items():
@@ -216,9 +306,9 @@ def get_battery_metrics(values):
 def format_data(values):
     """Format all data into structured dictionary with fault codes as both decimals and descriptions."""
     status_map = {
-        0: 'Waiting', 1: 'Checking', 2: 'Normal', 3: 'Fault',
-        4: 'Permanent Fault', 5: 'Updating', 6: 'EPS Check',
-        7: 'EPS Mode', 8: 'Self Test', 9: 'Idle'
+        0: 'Waiting', 1: 'Detecting', 2: 'GridConnected', 3: 'EPS',
+        4: 'Recoverable fault', 5: 'Permanent fault', 6: 'Upgrading',
+        7: 'Self-charging', 8: 'StaticVarGen', 9: 'PotentialInducedDegradationRecovery'
     }
 
     def format_value(value, precision):
@@ -285,7 +375,8 @@ def format_data(values):
                 'total': {
                     'active': format_value(get_register(values, '0x0488', 0.01, True), 2),  # back to kW
                     'reactive': format_value(get_register(values, '0x0489', 0.01, True), 2),
-                    'apparent': format_value(get_register(values, '0x048A', 0.01, True), 2)
+                    'apparent': format_value(get_register(values, '0x048A', 0.01, True), 2),
+                    'sys_load': format_value(get_register(values, '0x04AF', 0.01, True), 2)
                 },
                 'phase_r': {
                     'current': format_value(get_register(values, '0x0492', 0.01), 2),
@@ -428,6 +519,11 @@ def print_data(data):
         print(f"{pcc['total']['active']:.2f}kW")
     else:
         print("No data")
+    print("Total system Load:", end=" ")
+    if pcc['total']['sys_load'] is not None:
+        print(f"{pcc['total']['sys_load']:.2f}kW")
+    else:
+        print("No data")
     
     for phase in ['phase_r', 'phase_s', 'phase_t']:
         p = pcc[phase]
@@ -527,6 +623,7 @@ def print_data(data):
                     print(f"  End of Discharge: {settings['eod']}%")
                 if settings['eps_buffer'] is not None:
                     print(f"  EPS Buffer: {settings['eps_buffer']}%")
+
 def format_prometheus(data, inverter_name="inverter"):
     """Format data as Prometheus metrics following consistent labeling convention."""
     metrics = []
@@ -574,8 +671,10 @@ def format_prometheus(data, inverter_name="inverter"):
 
     # Total power metrics (* 1000 for watts)
     total_grid = data["grid"]["pcc"]["total"].get("active", 0) * -1000
+    total_sys_load = data["grid"]["pcc"]["total"].get("sys_load", 0) * 1000
     total_generated = data["grid"]["generation"]["total"].get("active", 0) * 1000
     metrics.append(f'{inverter_name}{{ac="total_grid_power"}} {total_grid}')
+    metrics.append(f'{inverter_name}{{ac="total_load_power"}} {total_sys_load}')
     metrics.append(f'{inverter_name}{{ac="total_generated_power"}} {total_generated}')
     
     # DC (Solar PV) metrics
@@ -596,7 +695,7 @@ def format_prometheus(data, inverter_name="inverter"):
             metrics.append(f'{inverter_name}{{batt="voltage",battery_num="{bat_num}"}} {bat_data.get("voltage", 0)}')
             metrics.append(f'{inverter_name}{{batt="out_current",battery_num="{bat_num}"}} {bat_data.get("current", 0)}')
             # Battery power (* 1000 for watts)
-            bat_power = bat_data.get("power", 0) * 1000
+            bat_power = bat_data.get("power", 0)
             metrics.append(f'{inverter_name}{{batt="out_power",battery_num="{bat_num}"}} {bat_power}')
             metrics.append(f'{inverter_name}{{batt="batt_temp",battery_num="{bat_num}"}} {bat_data.get("temperature", 0)}')
             metrics.append(f'{inverter_name}{{batt="batt_soc",battery_num="{bat_num}"}} {bat_data.get("soc", 0)}')
@@ -620,10 +719,10 @@ def format_prometheus(data, inverter_name="inverter"):
     metrics.append(f'{inverter_name}{{energy="daily_battery_discharge"}} {data["generation"].get("battery_discharge_daily", 0)}')
 
     # Additional CALCULATED metrics
-    generation_total = data["grid"]["generation"]["total"].get("active", 0)  # Make positive
-    pcc_total = abs(data["grid"]["pcc"]["total"].get("active", 0))
-    total_load_power = round((generation_total + pcc_total) * 1000)  # Convert to watts
-    metrics.append(f'{inverter_name}{{ac="total_load_power"}} {total_load_power}')
+#    generation_total = data["grid"]["generation"]["total"].get("active", 0)  # Make positive
+#    pcc_total = abs(data["grid"]["pcc"]["total"].get("active", 0))
+#    total_load_power = round((generation_total + pcc_total) * 1000)  # Convert to watts
+#    metrics.append(f'{inverter_name}{{ac="total_load_power"}} {total_load_power}')
     # Grid/Load/Generated metrics per phase
     for old_phase, new_phase in phase_mapping.items():
 
@@ -638,6 +737,46 @@ def format_prometheus(data, inverter_name="inverter"):
         phase_load_power = round((generation_power + pcc_power) * 1000)
         # Output all power metrics (* 1000 for watts)
         metrics.append(f'{inverter_name}{{ac="load_power",phase="{new_phase}"}} {phase_load_power}')
+
+   # EPS (Off-grid) metrics
+    if 'off_grid' in data:
+        off_grid = data['off_grid']
+        
+        # EPS Frequency
+        if off_grid['frequency'] is not None:
+            metrics.append(f'{inverter_name}{{eps="frequency"}} {off_grid["frequency"]:.2f}')
+        
+        # EPS Total Power Values (* 1000 for watts)
+        if 'total' in off_grid:
+            total = off_grid['total']
+            if total['active'] is not None:
+                metrics.append(f'{inverter_name}{{eps="total_power",type="active"}} {total["active"] * 1000}')
+#            if total['reactive'] is not None:
+#                metrics.append(f'{inverter_name}{{eps="total_power",type="reactive"}} {total["reactive"] * 1000}')
+#            if total['apparent'] is not None:
+#                metrics.append(f'{inverter_name}{{eps="total_power",type="apparent"}} {total["apparent"] * 1000}')
+
+        # EPS Per-phase metrics
+        phase_mapping = {
+            "phase_r": "A",
+            "phase_s": "B",
+            "phase_t": "C"
+        }
+
+        for old_phase, new_phase in phase_mapping.items():
+            if old_phase in off_grid:
+                p = off_grid[old_phase]
+                
+                if p['voltage'] is not None:
+                    metrics.append(f'{inverter_name}{{eps="voltage",phase="{new_phase}"}} {p["voltage"]:.1f}')
+                if p['current'] is not None:
+                    metrics.append(f'{inverter_name}{{eps="current",phase="{new_phase}"}} {p["current"]:.2f}')
+                if p['active_power'] is not None:
+                    metrics.append(f'{inverter_name}{{eps="power",type="active",phase="{new_phase}"}} {p["active_power"] * 1000}')
+ #               if p['reactive_power'] is not None:
+ #                   metrics.append(f'{inverter_name}{{eps="power",type="reactive",phase="{new_phase}"}} {p["reactive_power"] * 1000}')
+ #               if p['apparent_power'] is not None:
+ #                   metrics.append(f'{inverter_name}{{eps="power",type="apparent",phase="{new_phase}"}} {p["apparent_power"] * 1000}')
 
 
     return "\n".join(metrics)
