@@ -33,6 +33,8 @@ libscrc
   - **Human readable**: Outputs metrics in Human-readable format
   - **JSON**: Provides structured JSON output for detailed data analysis and logging.
   - **Prometheus**: Outputs metrics in Prometheus format for easy integration with monitoring systems.
+- **Drawing Graphs (Using Grafana + Prometheus - requires fluent knowledge in both to setup)**:
+  ![Grafana](https://github.com/ilia92/sofar-monitor/blob/main/exporter/grafana_screenshot.png?raw=true)
 
 ## Usage
 
