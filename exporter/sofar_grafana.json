@@ -970,7 +970,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum({ac=\"total_generated_power\"}/ on(){ac=\"total_load_power\"})*100",
+          "expr": "(sum({ac=\"total_generated_power\"}/ on(){ac=\"total_load_power\"})*100) > 0",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -1815,6 +1815,10 @@
               {
                 "id": "unit",
                 "value": "amp"
+              },
+              {
+                "id": "custom.axisCenteredZero",
+                "value": true
               }
             ]
           },
@@ -1853,6 +1857,14 @@
                   "fixedColor": "semi-dark-purple",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "custom.axisSoftMin",
+                "value": 0
+              },
+              {
+                "id": "custom.axisSoftMax",
+                "value": 100
               }
             ]
           }
@@ -3898,7 +3910,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -3960,13 +3973,13 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
-    "to": "now"
+    "from": "2024-11-10T02:24:07.285Z",
+    "to": "2024-11-10T14:26:12.516Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Sunpower",
   "uid": "ff05a58d-c82f-475c-b6f8-ceb28eb0b460",
-  "version": 115,
+  "version": 117,
   "weekStart": ""
 }
