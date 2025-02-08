@@ -323,9 +323,9 @@ def format_data(values):
             'state': status_map.get(status_val) if status_val is not None else None,
             'state_decimal': int(status_val) if status_val is not None else None,
             'generation_time_minutes': int(get_register(values, '0x0426')),
-            'ambient_temp': format_value(get_register(values, '0x0418'), 1),
-            'module_temp': format_value(get_register(values, '0x0420'), 1),
-            'heatsink_temp': format_value(get_register(values, '0x041A'), 1)
+            'ambient_temp': format_value(get_register(values, '0x0418', 1, True), 1),  # Added True for signed
+            'module_temp': format_value(get_register(values, '0x0420', 1, True), 1),   # Added True for signed
+            'heatsink_temp': format_value(get_register(values, '0x041A', 1, True), 1)  # Added True for signed
         },
         'faults': [fault['code'] for fault in fault_descriptions],  # List of just fault codes
         'pv1': {
